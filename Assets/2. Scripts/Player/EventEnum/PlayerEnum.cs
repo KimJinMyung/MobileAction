@@ -6,6 +6,11 @@ namespace PlayerEventEnum
         SetJoyStickActive,
         SetJoyStickBackPosition,
         SetJoyStickDrag,
+        SetCameraRotation,
     }
 
+    public enum Init
+    {
+        InitCameraRotationValue
+    }
 }
