@@ -11,6 +11,12 @@ namespace PlayerEventEnum
 
     public enum Init
     {
-        InitCameraRotationValue
+        InitCameraRotationValue,
+    }
+
+    public enum PlayerHUDEvent
+    {
+        SpawnPlayer,
+        DestroyPlayer,
     }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-public class PlayerViewModel
+public class PlayerHUDViewModel
 {
     private float hp;
     public float HP
@@ -8,7 +8,7 @@ public class PlayerViewModel
         get { return hp; }
         set
         {
-            if(hp == value) return;
+            if (hp == value) return;
             hp = value;
             OnPropertyChanged(nameof(HP));
         }
@@ -32,7 +32,7 @@ public class PlayerViewModel
         get => skillGauge;
         set
         {
-            if(skillGauge == value) return;
+            if (skillGauge == value) return;
             skillGauge = value;
             OnPropertyChanged(nameof(SkillGauge));
         }

@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using PlayerEventEnum;
 using System.ComponentModel;
 using UnityEngine;
 
@@ -12,8 +11,20 @@ public class PlayerView : MonoBehaviour
         AddViewModel();
     }
 
+    private void OnEnable()
+    {
+        EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.SpawnPlayer, this);
+
+        //vm.MaxHP = 200;
+        //vm.HP = 100;
+        vm.RequestPlayerMaxHPChanged(this, 200);
+        vm.RequestPlayerHPChanged(this, 100);
+    }
+
     private void OnDestroy()
     {
+        EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.DestroyPlayer);
+
         RemoveViewModel();
     }
 
@@ -24,7 +35,9 @@ public class PlayerView : MonoBehaviour
             vm = new PlayerViewModel();
             vm.PropertyChanged += OnPropertyChanged;
             vm.RegisterPlayerHPChanged(this, true);
+            vm.RegisterPlayerMaxHPChanged(this, true);
             vm.RegisterPlayerSkillGaugeChanged(this, true);
+            vm.RegisterPlayerMaxSkillGaugeChanged(this, true);
         }
     }
 
@@ -32,7 +45,9 @@ public class PlayerView : MonoBehaviour
     {
         if(vm!= null)
         {
+            vm.RegisterPlayerMaxSkillGaugeChanged(this, false);
             vm.RegisterPlayerSkillGaugeChanged(this, false);
+            vm.RegisterPlayerMaxHPChanged(this, false);  
             vm.RegisterPlayerHPChanged(this, false);
             vm.PropertyChanged -= OnPropertyChanged;
             vm = null;
@@ -41,6 +56,11 @@ public class PlayerView : MonoBehaviour
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        switch(e.PropertyName)
+        {
+            case nameof(vm.HP):
 
+                break;
+        }
     }
 }
