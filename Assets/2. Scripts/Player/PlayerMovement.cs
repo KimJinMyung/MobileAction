@@ -1,3 +1,4 @@
+using PlayerEventEnum;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -17,47 +18,28 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+
+        AddEvent();
     }
 
-    private void DebugPressButton()
+    private void OnDestroy()
     {
-        if(Input.GetKeyDown(KeyCode.A))
-        {
-            movement += new Vector2(-1, 0);
-        }
-        
-        if (Input.GetKeyUp(KeyCode.A))
-        {
-            movement -= new Vector2(-1, 0);
-        }
+        RemoveEvent();
+    }
 
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            movement += new Vector2(1, 0);
-        }        
-        
-        if (Input.GetKeyUp(KeyCode.D))
-        {
-            movement -= new Vector2(1, 0);
-        }
+    private void AddEvent()
+    {
+        EventManager<PlayerController>.Binding<Vector2>(true, PlayerController.Movement, OnMovement);
+    }
 
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            movement += new Vector2(0, 1);
-        }
-        if (Input.GetKeyUp(KeyCode.W))
-        {
-            movement -= new Vector2(0, 1);
-        }
+    private void RemoveEvent()
+    {
+        EventManager<PlayerController>.Binding<Vector2>(false, PlayerController.Movement, OnMovement);
+    }
 
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            movement += new Vector2(0, -1);
-        }
-        if (Input.GetKeyUp(KeyCode.S))
-        {
-            movement -= new Vector2(0, -1);
-        }
+    private void OnMovement(Vector2 move)
+    {
+        movement = move;
     }
 
     private void Move()
@@ -83,11 +65,6 @@ public class PlayerMovement : MonoBehaviour
         }
 
         var velocityMagnitude = rb.velocity.magnitude;        
-    }
-
-    private void Update()
-    {
-        DebugPressButton();
     }
 
     private void FixedUpdate()
