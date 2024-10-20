@@ -59,8 +59,21 @@ public class PlayerView : MonoBehaviour
         switch(e.PropertyName)
         {
             case nameof(vm.HP):
-
+                Debug.Log($"µð¹ö±ë : {vm.HP}");
                 break;
+        }
+    }
+
+    private void Update()
+    {
+        Debug.Log($"Player View : {vm.HP}");
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            float hp = vm.HP;
+            hp -= 10f;
+
+            vm.RequestPlayerHPChanged(this, hp);
         }
     }
 }

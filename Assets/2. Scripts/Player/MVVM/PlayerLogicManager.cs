@@ -34,7 +34,7 @@ public class PlayerLogicManager
             }
             else
             {
-                _playerHPChangedCallback[playerView] = playerHPChangedCallback;
+                _playerHPChangedCallback[playerView] += playerHPChangedCallback;
             }
         }
         else
@@ -65,7 +65,7 @@ public class PlayerLogicManager
             }
             else
             {
-                _playerMaxHPChangedCallback[playerView] = playerMaxHPChangedCallback;
+                _playerMaxHPChangedCallback[playerView] += playerMaxHPChangedCallback;
             }
         }
         else
@@ -96,7 +96,7 @@ public class PlayerLogicManager
             }
             else
             {
-                _playerSkillGaugeChangedCallback[playerView] = playerSkillGaugeChangedCallback;
+                _playerSkillGaugeChangedCallback[playerView] += playerSkillGaugeChangedCallback;
             }
         }
         else
@@ -127,7 +127,7 @@ public class PlayerLogicManager
             }
             else
             {
-                _playerMaxSkillGaugeChangedCallback[playerView] = playerMaxSkillGaugeChangedCallback;
+                _playerMaxSkillGaugeChangedCallback[playerView] += playerMaxSkillGaugeChangedCallback;
             }
         }
         else

@@ -92,6 +92,6 @@ public class PlayerHUD : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(vm.HP);
+        Debug.Log($"HUD : {vm.HP}");
     }
 }
