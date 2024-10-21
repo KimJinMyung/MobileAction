@@ -6,21 +6,21 @@ public class LocalCamera : NetworkBehaviour
 {
     [SerializeField] private Transform cameraArm;
 
-    private CinemachineVirtualCamera camera;
+    private CinemachineVirtualCamera virtualCamera;
 
     private void Awake()
     {
-        camera = GetComponent<CinemachineVirtualCamera>();
+        virtualCamera = GetComponent<CinemachineVirtualCamera>();
 
-        camera.enabled = false;
+        virtualCamera.enabled = false;
     }
 
     private void Start()
     {
         if (isLocalPlayer)
         {
-            camera.enabled = true;
-            camera.Follow = cameraArm;
+            virtualCamera.enabled = true;
+            virtualCamera.Follow = cameraArm;
         }
     }
 }

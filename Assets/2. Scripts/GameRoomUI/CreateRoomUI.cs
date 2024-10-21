@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Mirror;
+using PlayerEventEnum;
 
 public class CreateRoomUI : MonoBehaviour
 {
@@ -23,6 +24,14 @@ public class CreateRoomUI : MonoBehaviour
 
         // 호스트의 IP 주소를 중앙 서버나 관리 스크립트에 등록
         string hostIP = NetworkManager.singleton.networkAddress;
+        string roomID = NetworkManager.singleton.GetInstanceID().ToString();
+
+        // 디버깅
+        string passward = "0000";
+
+        EventManager<DB_Event>.TriggerEvent(DB_Event.CreateRoom, hostIP, roomID, passward);
+
+
         // 디버깅
         Debug.Log(hostIP);
     }

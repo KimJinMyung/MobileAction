@@ -21,4 +21,11 @@ namespace PlayerEventEnum
         DestroyPlayer,
         EnableHUD,
     }
+
+    public enum DB_Event
+    {
+        CreateRoom,
+        DeleteRoom,
+        EnterRoom,
+    }
 }
