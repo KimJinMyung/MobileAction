@@ -11,10 +11,23 @@ public class PlayerHUD : MonoBehaviour
     private PlayerHUDViewModel vm;
 
     private PlayerView view;
+    private Canvas canvas;
 
     private void Awake()
     {
+        canvas = GetComponentInParent<Canvas>();
+
         AddEvent();
+    }
+
+    private void Start()
+    {
+        canvas.enabled = false;
+    }
+
+    private void OnEnable()
+    {
+        EventManager<Init>.TriggerEvent(Init.SpawnPlayCharacter);
     }
 
     private void OnDestroy()
@@ -26,12 +39,19 @@ public class PlayerHUD : MonoBehaviour
     {
         EventManager<PlayerHUDEvent>.Binding<PlayerView>(true, PlayerHUDEvent.SpawnPlayer, SpawnPlayer);
         EventManager<PlayerHUDEvent>.Binding(true, PlayerHUDEvent.DestroyPlayer, DestroyPlayer);
+        EventManager<PlayerHUDEvent>.Binding<bool>(true, PlayerHUDEvent.EnableHUD, EnablePlayerHUD);
     }
 
     private void RemoveEvent()
     {
         EventManager<PlayerHUDEvent>.Binding<PlayerView>(false, PlayerHUDEvent.SpawnPlayer, SpawnPlayer);
         EventManager<PlayerHUDEvent>.Binding(false, PlayerHUDEvent.DestroyPlayer, DestroyPlayer);
+        EventManager<PlayerHUDEvent>.Binding<bool>(false, PlayerHUDEvent.EnableHUD, EnablePlayerHUD);
+    }
+
+    private void EnablePlayerHUD(bool isEnable)
+    {
+        canvas.enabled = isEnable;
     }
 
     private void SpawnPlayer(PlayerView view)
@@ -43,6 +63,8 @@ public class PlayerHUD : MonoBehaviour
 
     private void DestroyPlayer()
     {
+        EnablePlayerHUD(false);
+
         ReMoveViewMode();
 
         this.view = null;
@@ -92,6 +114,9 @@ public class PlayerHUD : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log($"HUD : {vm.HP}");
+        if (canvas.enabled)
+        {
+            Debug.Log($"HUD : {vm.HP}");
+        }
     }
 }

@@ -1,7 +1,8 @@
+using Mirror;
 using PlayerEventEnum;
 using UnityEngine;
 
-public class PlayerCameraRotation : MonoBehaviour
+public class PlayerCameraRotation : NetworkBehaviour
 {
     [SerializeField] private Transform _cameraArm;
 

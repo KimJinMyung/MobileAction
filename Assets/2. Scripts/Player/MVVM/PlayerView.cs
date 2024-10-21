@@ -1,24 +1,17 @@
 using PlayerEventEnum;
 using System.ComponentModel;
 using UnityEngine;
+using Mirror;
 
-public class PlayerView : MonoBehaviour
+public class PlayerView : NetworkBehaviour
 {
     private PlayerViewModel vm;
 
     private void Awake()
     {
         AddViewModel();
-    }
 
-    private void OnEnable()
-    {
-        EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.SpawnPlayer, this);
-
-        //vm.MaxHP = 200;
-        //vm.HP = 100;
-        vm.RequestPlayerMaxHPChanged(this, 200);
-        vm.RequestPlayerHPChanged(this, 100);
+        SpawnCharacter();
     }
 
     private void OnDestroy()
@@ -26,6 +19,11 @@ public class PlayerView : MonoBehaviour
         EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.DestroyPlayer);
 
         RemoveViewModel();
+    }
+
+    private void OnEnable()
+    {
+        EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.EnableHUD, true);
     }
 
     private void AddViewModel()
@@ -52,6 +50,16 @@ public class PlayerView : MonoBehaviour
             vm.PropertyChanged -= OnPropertyChanged;
             vm = null;
         }
+    }
+
+    private void SpawnCharacter()
+    {
+        EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.SpawnPlayer, this);
+
+        //vm.MaxHP = 200;
+        //vm.HP = 100;
+        vm.RequestPlayerMaxHPChanged(this, 200);
+        vm.RequestPlayerHPChanged(this, 100);
     }
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
