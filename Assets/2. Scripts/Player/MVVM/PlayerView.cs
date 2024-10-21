@@ -10,8 +10,6 @@ public class PlayerView : NetworkBehaviour
     private void Awake()
     {
         AddViewModel();
-
-        SpawnCharacter();
     }
 
     private void OnDestroy()
@@ -24,6 +22,11 @@ public class PlayerView : NetworkBehaviour
     private void OnEnable()
     {
         EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.EnableHUD, true);
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        SpawnCharacter();
     }
 
     private void AddViewModel()
@@ -54,12 +57,19 @@ public class PlayerView : NetworkBehaviour
 
     private void SpawnCharacter()
     {
+        if (!isLocalPlayer) return;
+
         EventManager<PlayerHUDEvent>.TriggerEvent(PlayerHUDEvent.SpawnPlayer, this);
 
+        // 디버깅
         //vm.MaxHP = 200;
         //vm.HP = 100;
+
+        // 초기 값
         vm.RequestPlayerMaxHPChanged(this, 200);
         vm.RequestPlayerHPChanged(this, 100);
+        vm.RequestPlayerMaxSkillGaugeChanged(this, 100);
+        vm.RequestPlayerSkillGaugeChanged(this, 30);
     }
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -74,9 +84,11 @@ public class PlayerView : NetworkBehaviour
 
     private void Update()
     {
+        Debug.Log($"{isLocalPlayer} : {isServer} ");
+
         Debug.Log($"Player View : {vm.HP}");
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.K) && isLocalPlayer)
         {
             float hp = vm.HP;
             hp -= 10f;

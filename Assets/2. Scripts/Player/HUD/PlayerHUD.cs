@@ -55,7 +55,7 @@ public class PlayerHUD : MonoBehaviour
     }
 
     private void SpawnPlayer(PlayerView view)
-    {
+    {        
         this.view = view;
 
         AddViewMode();
@@ -116,7 +116,7 @@ public class PlayerHUD : MonoBehaviour
     {
         if (canvas.enabled)
         {
-            Debug.Log($"HUD : {vm.HP}");
+            //Debug.Log($"HUD : {vm.HP}");
         }
     }
 }
