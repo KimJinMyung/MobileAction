@@ -40,7 +40,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private void OnMovement(Vector2 move)
     {
-        movement = move;
+        if(isLocalPlayer)
+            movement = move;
     }
 
     private void Move()
