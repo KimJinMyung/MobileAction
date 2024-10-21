@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 public class DB_ServerRoomManager : MonoBehaviour
 {
     // Node.js 서버 주소
-    private string serverUrl = "http://192.168.0.129:3000";
+    private string serverUrl = "http://localhost:3000";
 
     private void Awake()
     {

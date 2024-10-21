@@ -27,7 +27,7 @@ public class CreateRoomUI : MonoBehaviour
         string roomID = NetworkManager.singleton.GetInstanceID().ToString();
 
         // µð¹ö±ë
-        string passward = "0000";
+        string passward = "1234";
 
         EventManager<DB_Event>.TriggerEvent(DB_Event.CreateRoom, hostIP, roomID, passward);
 
