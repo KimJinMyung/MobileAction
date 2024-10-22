@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Mirror;
 using PlayerEventEnum;
+using TCP_Enum;
 
 public class CreateRoomUI : MonoBehaviour
 {
@@ -24,15 +25,32 @@ public class CreateRoomUI : MonoBehaviour
 
         // 호스트의 IP 주소를 중앙 서버나 관리 스크립트에 등록
         string hostIP = NetworkManager.singleton.networkAddress;
-        string roomID = NetworkManager.singleton.GetInstanceID().ToString();
+        string roomID = "261212";
 
         // 디버깅
         string passward = "1234";
 
-        EventManager<DB_Event>.TriggerEvent(DB_Event.CreateRoom, hostIP, roomID, passward);
-
-
-        // 디버깅
-        Debug.Log(hostIP);
+        // TCP 통신을 통해 DB에 방 생성 요청
+        MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.createRoom},{roomID},{hostIP},{passward}");  
     }
+
+    private void Debug_PrintRoomList()
+    {
+        // TCP 통신을 통해 DB에 방 생성 요청
+        MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.getRoomList}");
+    }
+
+    //// 디버깅
+    //private void OnDestroy()
+    //{
+    //    // 호스트의 IP 주소를 중앙 서버나 관리 스크립트에 등록
+    //    string hostIP = NetworkManager.singleton.networkAddress;
+    //    string roomID = "261212";
+
+    //    // 디버깅
+    //    string passward = "1234";
+
+    //    // TCp 통신을 통해 방 제거 요청
+    //    MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.removeRoom},{roomID}");
+    //}
 }
