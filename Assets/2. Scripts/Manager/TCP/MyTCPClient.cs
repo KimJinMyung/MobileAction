@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using System.Text;
 using System.Threading.Tasks;
+using TCP_Enum;
 
 public class MyTCPClient : Singleton<MyTCPClient>
 {
@@ -14,6 +15,11 @@ public class MyTCPClient : Singleton<MyTCPClient>
         base.Awake();
 
         ConnectToServer("127.0.0.1", 5000);
+    }
+
+    private void Start()
+    {
+        EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.requestRoomList);
     }
 
     // 서버 연결
@@ -65,14 +71,14 @@ public class MyTCPClient : Singleton<MyTCPClient>
     }
 
     // 서버로부터 메시지 수신 (비동기 처리)
-    public async Task<string> ReceiveMessageFromServer()
+    public async void ReceiveRoomListFromServer(Tcp_Room_Command TcpEvent)
     {
         try
         {
             if(stream == null)
             {
                 Debug.LogError("Stream is not initialized");
-                return string.Empty;
+                return;
             }
 
             byte[] buffer = new byte[1024]; // 수신 버퍼
@@ -81,18 +87,17 @@ public class MyTCPClient : Singleton<MyTCPClient>
             if(bytesRead > 0)
             {
                 // 바이트 배열을 문자열로 변환
-                string receivedMessage = Encoding.UTF8.GetString(buffer);
+                string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Debug.LogError("Received from server : " + receivedMessage);
-                return receivedMessage;
+
+                // Game Room Lobby 에게 데이터 전달
+                EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.getRoomList, receivedMessage);
             }
-
-            return string.Empty;
-
         }
         catch(Exception e)
         {
             Debug.LogError("Error receive message : " + e.Message);
-            return string.Empty;
+            return;
         }
     }
 }   

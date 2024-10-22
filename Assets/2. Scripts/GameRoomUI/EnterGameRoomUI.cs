@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Mirror;
+using TCP_Enum;
 
 public class EnterGameRoomUI : MonoBehaviour
 {
+    [SerializeField] private Text ServerId;
+    [SerializeField] private Text ServerIP;
+    [SerializeField] private Text password;
+
     private Button btn_GameRoom;
 
     // µð¹ö±ë
@@ -14,7 +19,18 @@ public class EnterGameRoomUI : MonoBehaviour
     private void Awake()
     {
         btn_GameRoom = GetComponent<Button>();
-        btn_GameRoom.onClick.AddListener(EnterGameRoom);
+
+
+
+        //btn_GameRoom.onClick.AddListener(EnterGameRoom);
+    }
+
+    public void InitGameRoomData(string id, string ip, string password)
+    {
+        // µð¹ö±ë
+        ServerId.text = id;
+        ServerId.text = ip;
+        this.password.text = password;
     }
 
     private void EnterGameRoom()
