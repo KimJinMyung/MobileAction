@@ -20,7 +20,8 @@ namespace TCP_Server
                 dBManager.OpenConnection();
 
                 // IP 주소와 포트로 서버 시작
-                server = new TcpListener(IPAddress.Parse(ipAddress), port);
+                // TCPListener([접근이 가능한 IP], [포트])
+                server = new TcpListener(IPAddress.Any, port);
                 server.Start();
                 Console.WriteLine($"Server started on {ipAddress} : {port}");
 
@@ -29,6 +30,8 @@ namespace TCP_Server
                     // 클라이언트 연결 수락
                     TcpClient client = server.AcceptTcpClient();
                     Console.WriteLine("Client connected");
+                    IPEndPoint clientEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
+                    Console.WriteLine($"{clientEndPoint.Address}");
 
                     // 클라이언트 요청 처리
                     HandleClient(client);
@@ -45,8 +48,6 @@ namespace TCP_Server
         {
             try
             {
-                Console.WriteLine("Connected");
-
                 // 네트워크 스트림 생성
                 NetworkStream stream = client.GetStream();
                 byte[] buffer = new byte[1024];
@@ -66,13 +67,17 @@ namespace TCP_Server
                         switch (requestParts[0])
                         {
                             case "createRoom":
+                                IPEndPoint clientEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
                                 string serverId = requestParts[1];
-                                string serverIp = requestParts[2];
+                                string serverIp = clientEndPoint.Address.ToString();
                                 string password = requestParts[3];
+                                string roomName = requestParts[4];
+                                string currentCount = requestParts[5];
+                                string maxCount = requestParts[6];
 
-                                Console.WriteLine("Request Create Room");
+                                Console.WriteLine($"Room Name : {roomName}, currentCount : {currentCount}, maxCound : {maxCount}");
 
-                                dBManager.InsertRoom(serverId, serverIp, password);
+                                dBManager.InsertRoom(serverId, serverIp, password, roomName, currentCount, maxCount);
                                 SendResponse(stream, "Room created success");
                                 break;
 
@@ -101,6 +106,28 @@ namespace TCP_Server
                                 }
                                 break;
 
+                            case "AddPlayerCount":
+                                string id = requestParts[1];
+                                string stringChangedType = requestParts[2];
+                                int intChangedType = int.Parse(stringChangedType);
+
+                                dBManager.ChangedPlayerCount(id, intChangedType);
+                                SendResponse(stream, "Add PlayerCount");
+                                break;
+                            case "GetPlayerCount":
+                                string server_id = requestParts[1];
+
+                                string playerCount = dBManager.GetPlayerCount(server_id);
+                                if (!string.IsNullOrEmpty(playerCount))
+                                {
+                                    SendResponse(stream, playerCount);
+                                }
+                                else
+                                {
+                                    SendResponse(stream, "Not Found");
+                                }
+                                
+                                break;
                             default:
                                 SendResponse(stream, "Invalid request");
                                 break;

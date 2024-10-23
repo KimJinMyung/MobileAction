@@ -88,7 +88,7 @@ public class MyTCPClient : Singleton<MyTCPClient>
             {
                 // 바이트 배열을 문자열로 변환
                 string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                Debug.LogError("Received from server : " + receivedMessage);
+                //Debug.LogError("Received from server : " + receivedMessage);
 
                 // Game Room Lobby 에게 데이터 전달
                 EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.getRoomList, receivedMessage);

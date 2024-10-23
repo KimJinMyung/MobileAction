@@ -5,6 +5,9 @@ namespace TCP_Enum
         public string id;
         public string ip;
         public string password;
+        public string roomName;
+        public int currentPlayerCount;
+        public int maxPlayerCount;
     }
 
     public enum Tcp_Room_Command
@@ -14,5 +17,7 @@ namespace TCP_Enum
         getRoomList,
         requestRoomList,
         enterRoom,
+        ChangedPlayerCount,
+        GetPlayerCount
     }
 }

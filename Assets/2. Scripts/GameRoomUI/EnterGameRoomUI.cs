@@ -4,13 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using Mirror;
 using TCP_Enum;
+using TMPro;
 
 public class EnterGameRoomUI : MonoBehaviour
 {
-    [SerializeField] private Text ServerId;
-    [SerializeField] private Text ServerIP;
-    [SerializeField] private Text password;
+    [SerializeField] private TMP_Text RoomName;
+    [SerializeField] private TMP_Text PlayerCount;
+    [SerializeField] private Image LockOnIcon;
 
+    private RoomData roomData;
     private Button btn_GameRoom;
 
     // µð¹ö±ë
@@ -25,12 +27,13 @@ public class EnterGameRoomUI : MonoBehaviour
         //btn_GameRoom.onClick.AddListener(EnterGameRoom);
     }
 
-    public void InitGameRoomData(string id, string ip, string password)
+    public void InitGameRoomData(RoomData roomData)
     {
-        // µð¹ö±ë
-        ServerId.text = id;
-        ServerId.text = ip;
-        this.password.text = password;
+        this.roomData = roomData;
+
+        RoomName.text = roomData.roomName;
+        PlayerCount.text = $"{roomData.currentPlayerCount} / {roomData.maxPlayerCount}";
+        LockOnIcon.enabled = int.Parse(roomData.password) != 1234;
     }
 
     private void EnterGameRoom()

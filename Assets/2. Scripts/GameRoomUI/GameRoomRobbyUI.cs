@@ -7,6 +7,7 @@ using UnityEngine;
 public class GameRoomRobbyUI : MonoBehaviour
 {
     [SerializeField] private GameObject GameRoomButton;
+    [SerializeField] private Transform GameRoomListContent;
 
     private void Awake()
     {
@@ -39,6 +40,7 @@ public class GameRoomRobbyUI : MonoBehaviour
         MyTCPClient.Instance.ReceiveRoomListFromServer(Tcp_Room_Command.getRoomList);
     }
 
+    // port, ip, password, playerCount
     private void UpdateRoomList(string roomListData)
     {
         string[] rooms = roomListData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -52,11 +54,15 @@ public class GameRoomRobbyUI : MonoBehaviour
             RoomData roomdata = new RoomData();
             roomdata.id = roomdatas[0];
             roomdata.ip = roomdatas[1];
-            //roomdata.password = roomdatas[2];            
+            roomdata.password = roomdatas[2];
+            roomdata.roomName = roomdatas[3];
+            roomdata.currentPlayerCount = int.Parse(roomdatas[4]);
+            roomdata.maxPlayerCount = int.Parse(roomdatas[5]);
 
-            //GameObject newGameRoom = Instantiate(GameRoomButton);
-            //EnterGameRoomUI GameRoomData = newGameRoom.GetComponent<EnterGameRoomUI>();
-            //GameRoomData.InitGameRoomData()
+            GameObject newGameRoom = Instantiate(GameRoomButton);
+            newGameRoom.transform.parent = GameRoomListContent;
+            EnterGameRoomUI GameRoomData = newGameRoom.GetComponent<EnterGameRoomUI>();
+            GameRoomData.InitGameRoomData(roomdata);
         }
     }
 }
