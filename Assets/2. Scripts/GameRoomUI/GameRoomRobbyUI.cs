@@ -1,68 +1,58 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TCP_Enum;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameRoomRobbyUI : MonoBehaviour
 {
-    [SerializeField] private GameObject GameRoomButton;
-    [SerializeField] private Transform GameRoomListContent;
+    [SerializeField] private GameObject gameRoomButton;
+    [SerializeField] private Transform gameRoomListContent;
+
+    [SerializeField] private Button btn_RefreshGameRoomList;
 
     private void Awake()
     {
-        AddEvent();        
+        AddEvent();
+
+        btn_RefreshGameRoomList.onClick.AddListener(RequestUpdateRoomData);
     }
 
     private void OnDestroy()
     {
         RemoveEvent();
+
+        btn_RefreshGameRoomList.onClick.RemoveListener(RequestUpdateRoomData);
     }
 
     private void AddEvent()
     {
         EventManager<Tcp_Room_Command>.Binding(true, Tcp_Room_Command.requestRoomList, RequestUpdateRoomData);
-        EventManager<Tcp_Room_Command>.Binding<string>(true, Tcp_Room_Command.getRoomList, UpdateRoomList);
+        EventManager<Tcp_Room_Command>.Binding<string>(true, Tcp_Room_Command.UpdateRoomList, UpdateRoomList);
     }
 
     private void RemoveEvent()
     {
         EventManager<Tcp_Room_Command>.Binding(false, Tcp_Room_Command.requestRoomList, RequestUpdateRoomData);
-        EventManager<Tcp_Room_Command>.Binding<string>(false, Tcp_Room_Command.getRoomList, UpdateRoomList);
+        EventManager<Tcp_Room_Command>.Binding<string>(false, Tcp_Room_Command.UpdateRoomList, UpdateRoomList);
     }
 
-    private void RequestUpdateRoomData()
+    private async void RequestUpdateRoomData()
     {
         // 방 목록 요청
         MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.getRoomList}");
 
         // 방 목록 요청 후 서버 응답 기다림
-        MyTCPClient.Instance.ReceiveRoomListFromServer(Tcp_Room_Command.getRoomList);
+        var roomListData = await MyTCPClient.Instance.ReceiveRoomListFromServer(Tcp_Room_Command.getRoomList);
+
+        UpdateRoomList(roomListData);
     }
 
     // port, ip, password, playerCount
     private void UpdateRoomList(string roomListData)
     {
-        string[] rooms = roomListData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-        foreach(var room in rooms)
-        {
-            if(string.IsNullOrEmpty(room)) continue;
-
-            string[] roomdatas = room.Split(',');
-
-            RoomData roomdata = new RoomData();
-            roomdata.id = roomdatas[0];
-            roomdata.ip = roomdatas[1];
-            roomdata.password = roomdatas[2];
-            roomdata.roomName = roomdatas[3];
-            roomdata.currentPlayerCount = int.Parse(roomdatas[4]);
-            roomdata.maxPlayerCount = int.Parse(roomdatas[5]);
-
-            GameObject newGameRoom = Instantiate(GameRoomButton);
-            newGameRoom.transform.parent = GameRoomListContent;
-            EnterGameRoomUI GameRoomData = newGameRoom.GetComponent<EnterGameRoomUI>();
-            GameRoomData.InitGameRoomData(roomdata);
-        }
+        EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.getRoomList, roomListData, gameRoomButton, gameRoomListContent);
     }
 }

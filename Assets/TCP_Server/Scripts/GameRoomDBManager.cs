@@ -37,7 +37,7 @@ class GameRoomDBManager
     // 방 생성
     public void InsertRoom(string serverID, string serverIP, string password, string roomName, string currentCount, string maxCount)
     {
-        string query = "INSERT INTO rooms (serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount) VALUES (@serverid, @serverip, @password, @roomName, @currentPlayerCount, @maxPlayerCount)";
+        string query = "INSERT INTO rooms (serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount, JoinCode) VALUES (@serverid, @serverip, @password, @roomName, @currentPlayerCount, @maxPlayerCount, @JoinCode)";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
         cmd.Parameters.AddWithValue("@serverid", serverID);
@@ -46,6 +46,10 @@ class GameRoomDBManager
         cmd.Parameters.AddWithValue("@roomName", roomName);
         cmd.Parameters.AddWithValue("@currentPlayerCount", currentCount);
         cmd.Parameters.AddWithValue("@maxPlayerCount", maxCount);
+
+        Random random = new Random();
+        int randomJoinCode = random.Next(10000, 90001);
+        cmd.Parameters.AddWithValue("@JoinCode", randomJoinCode.ToString());
 
         Console.WriteLine("Cmd Ready");
 
@@ -61,26 +65,29 @@ class GameRoomDBManager
     }
 
     // 방 제거
-    public void RemoveRoom(string serverID)
+    public bool RemoveRoom(string serverID, string serverIp)
     {
-        string query = "DELETE FROM rooms WHERE serverid = @serverid";
+        string query = "DELETE FROM rooms WHERE serverid = @serverid AND serverip = @serverip";
         MySqlCommand cmd = new MySqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@serverid", serverID);
+        cmd.Parameters.AddWithValue("@serverip", serverIp);
 
         try
         {
             cmd.ExecuteNonQuery();
             Console.WriteLine("Room removed from DB");
+            return true;
         }catch(Exception e)
         {
             Console.WriteLine("Error removing from DB" + e.Message);
+            return false;
         }
     }
 
     // 방 목록 조회
     public string GetRoomList()
     {
-        string query = "SELECT serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount FROM rooms";
+        string query = "SELECT serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount, JoinCode FROM rooms";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
         try
@@ -93,10 +100,16 @@ class GameRoomDBManager
                 string serverId = reader.GetString("serverid");
                 string serverIp = reader.GetString("serverip");
                 string password = reader.GetString("Password");
+                bool isLock = false;
+                if (!string.IsNullOrEmpty(password))
+                {
+                    isLock = true;
+                }
                 string roomName = reader.GetString("roomName");
                 int currentPlayerCount = reader.GetInt32("currentPlayerCount");
                 int maxPlayerCount = reader.GetInt32("maxPlayerCount");
-                roomList.Append($"{serverId}, {serverIp}, {password}, {roomName}, {currentPlayerCount}, {maxPlayerCount};");
+                int JoinCode = reader.GetInt32("JoinCode");
+                roomList.Append($"{serverId},{serverIp},{isLock},{roomName},{currentPlayerCount},{maxPlayerCount},{JoinCode};");
             }
 
             reader.Close();
@@ -110,12 +123,42 @@ class GameRoomDBManager
         }
     }
 
-    // 방 입장
-    public string EnterSelectRoom(string roomID, string password)
+    public string EnterSelectRoom(string JoinCode)
     {
-        string query = "SELECT serverip, password FROM rooms WHERE serverid = @serverid";
+        string query = "SELECT serverip, serverid FROM rooms WHERE JoinCode = @JoinCode";
+        MySqlCommand cmd = new MySqlCommand( query, connection);
+        cmd.Parameters.AddWithValue("@JoinCode", JoinCode);
+
+        try
+        {
+            MySqlDataReader reader = cmd.ExecuteReader();
+            StringBuilder roomList = new StringBuilder();
+
+            if (reader.Read())
+            {
+                string serverIp = reader.GetString("serverip");
+                string serverId = reader.GetString("serverid");
+
+                roomList.Append($"{serverIp}, {serverId}");
+            }
+
+            reader.Close();
+            return roomList.ToString();
+
+        }catch (Exception ex)
+        {
+            Console.WriteLine("Error Join Room: " + ex.Message);
+            return string.Empty;
+        }
+    }
+
+    // 방 입장
+    public string EnterRoom(string serverIP, string serverID, string password)
+    {
+        string query = $"SELECT password FROM rooms WHERE serverid = '{serverID}' AND serverip = '{serverIP}'";
         MySqlCommand cmd = new MySqlCommand(query, connection);
-        cmd.Parameters.AddWithValue("@serverid", roomID);
+
+        Console.WriteLine($"Executing Query: {query} with serverID: {serverID}, serverIP: {serverIP}");
 
         try
         {
@@ -124,13 +167,12 @@ class GameRoomDBManager
             if (reader.Read())
             {
                 string dbPassword = reader.GetString("password");
-                string serverIp = reader.GetString("serverip");
 
                 // 비밀번호가 일치하는지 확인
-                if(password == dbPassword)
+                if (string.Equals(password, dbPassword))
                 {
                     reader.Close();
-                    return serverIp;    // 성공
+                    return "true";    // 성공
                 }
                 else
                 {
@@ -138,11 +180,14 @@ class GameRoomDBManager
                     return "Invalid password";  // 실패
                 }
             }
-            else{
+            else
+            {
+                Console.WriteLine("Data Read Fail");
                 reader.Close();
                 return "Room not found"; // 방 없음
             }
-        }catch(Exception e)
+        }
+        catch (Exception e)
         {
             Console.WriteLine("Error during room entry: " + e.Message);
             return "Error";
@@ -150,13 +195,14 @@ class GameRoomDBManager
     }
 
     // 플레이어 수 증가, 감소
-    public void ChangedPlayerCount(string serverID, int ChangedType)
+    public void ChangedPlayerCount(string serverIp, string serverID, int ChangedType)
     {
         int ChangedCount = ChangedType > 0 ? 1 : -1;
-        string query = $"UPDATE rooms SET playerCount = playerCount + {ChangedCount} WHERE serverid = @serverid";
+        string query = $"UPDATE rooms SET playerCount = playerCount + {ChangedCount} WHERE serverid = @serverid AND serverip = @serverip";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
         cmd.Parameters.AddWithValue("@serverid", serverID);
+        cmd.Parameters.AddWithValue("@serverip", serverIp);
 
         try
         {

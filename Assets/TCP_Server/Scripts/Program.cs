@@ -83,8 +83,9 @@ namespace TCP_Server
 
                             case "removeRoom":
                                 string serverid = requestParts[1];
-                                dBManager.RemoveRoom(serverid);
-                                SendResponse(stream, "Room removed success");
+                                string serverip = requestParts[2];
+                                string Success = dBManager.RemoveRoom(serverid, serverip).ToString();
+                                SendResponse(stream, Success);
                                 break;
 
                             case "getRoomList":
@@ -93,26 +94,36 @@ namespace TCP_Server
                                 break;
 
                             case "enterRoom":
-                                string roomid = requestParts[1];
-                                string roomPassword = requestParts[2];
-                                string serverIP = dBManager.EnterSelectRoom(roomid, roomPassword);
-                                if (!string.IsNullOrEmpty(serverIP))
+                                string roomip = requestParts[1];
+                                string roomid = requestParts[2];
+                                string roomPassword = requestParts[3];
+
+                                var response = dBManager.EnterRoom(roomip, roomid, roomPassword);
+
+                                if (!string.IsNullOrEmpty(response))
                                 {
-                                    SendResponse(stream, serverIP);
+                                    SendResponse(stream, response);
                                 }
                                 else
                                 {
                                     SendResponse(stream, "Invalid room ID or password");
                                 }
                                 break;
+                            case "enterSelectRoom":
+                                string roomJoinCode = requestParts[1];
 
-                            case "AddPlayerCount":
-                                string id = requestParts[1];
-                                string stringChangedType = requestParts[2];
+                                string roomData = dBManager.EnterSelectRoom(roomJoinCode);
+                                SendResponse(stream, roomData);
+                                break;
+
+                            case "ChangedPlayerCount":
+                                string ip = requestParts[1];
+                                string id = requestParts[2];
+                                string stringChangedType = requestParts[3];
                                 int intChangedType = int.Parse(stringChangedType);
 
-                                dBManager.ChangedPlayerCount(id, intChangedType);
-                                SendResponse(stream, "Add PlayerCount");
+                                dBManager.ChangedPlayerCount(ip, id, intChangedType);
+                                SendResponse(stream, "Changed PlayerCount");
                                 break;
                             case "GetPlayerCount":
                                 string server_id = requestParts[1];

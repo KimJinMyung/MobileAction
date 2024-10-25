@@ -1,49 +1,50 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using Mirror;
-using TCP_Enum;
 using TMPro;
+using TCP_Enum;
+using UnityEngine.UI;
 
 public class EnterGameRoomUI : MonoBehaviour
 {
-    [SerializeField] private TMP_Text RoomName;
-    [SerializeField] private TMP_Text PlayerCount;
-    [SerializeField] private Image LockOnIcon;
+    [SerializeField] private TMP_InputField input_Password;
+    [SerializeField] private Button btn_GameJoin;
 
-    private RoomData roomData;
-    private Button btn_GameRoom;
+    private RoomData selectRoom;
 
-    // 디버깅
-    //public string serverIPAddress = "127.0.0.1";
-
-    private void Awake()
+    private void OnEnable()
     {
-        btn_GameRoom = GetComponent<Button>();
-
-
-
-        //btn_GameRoom.onClick.AddListener(EnterGameRoom);
+        btn_GameJoin.onClick.AddListener(TryJoinGame);
     }
 
-    public void InitGameRoomData(RoomData roomData)
+    private void OnDisable()
     {
-        this.roomData = roomData;
-
-        RoomName.text = roomData.roomName;
-        PlayerCount.text = $"{roomData.currentPlayerCount} / {roomData.maxPlayerCount}";
-        LockOnIcon.enabled = int.Parse(roomData.password) != 1234;
+        btn_GameJoin.onClick.RemoveListener(TryJoinGame);
     }
 
-    private void EnterGameRoom()
+    //private void OnEnable()
+    //{
+    //    EventManager<Tcp_Room_Command>.Binding<RoomData>(true, Tcp_Room_Command.SelectRoom, SelectGameRoom);
+    //}
+
+    //private void OnDisable()
+    //{
+    //    EventManager<Tcp_Room_Command>.Binding<RoomData>(false, Tcp_Room_Command.SelectRoom, SelectGameRoom);
+    //}
+
+    public void SelectGameRoom(RoomData roomData)
     {
-        var manager = MyGameRoomManager.singleton;
+        selectRoom = roomData;
+        Debug.LogError(selectRoom.ip);
+    }
 
-        // 게임룸 서버의 IP 주소를 설정
-        //manager.networkAddress = serverIPAddress;
+    private void TryJoinGame()
+    {
+        string password = input_Password.text;
 
-        // 클라이언트 시작
-        manager.StartClient();
+        string selectIp = selectRoom.ip;
+
+        Debug.Log($"IP : {selectIp}");
+        string selectPort = selectRoom.id;
+
+        EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.enterRoom, selectIp, selectPort, password);
     }
 }

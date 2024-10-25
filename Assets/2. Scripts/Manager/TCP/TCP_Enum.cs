@@ -4,10 +4,11 @@ namespace TCP_Enum
     {
         public string id;
         public string ip;
-        public string password;
         public string roomName;
         public int currentPlayerCount;
         public int maxPlayerCount;
+        public int joinCode;
+        public bool isLock;
     }
 
     public enum Tcp_Room_Command
@@ -15,9 +16,13 @@ namespace TCP_Enum
         createRoom,
         removeRoom,
         getRoomList,
+        UpdateRoomList,
         requestRoomList,
+        SelectRoom,
         enterRoom,
+        enterSelectRoom,
         ChangedPlayerCount,
-        GetPlayerCount
+        GetPlayerCount,
+        CloseServer,
     }
 }
