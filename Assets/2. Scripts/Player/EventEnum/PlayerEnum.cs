@@ -21,4 +21,9 @@ namespace PlayerEventEnum
         DestroyPlayer,
         EnableHUD,
     }
+
+    public enum UserData
+    {
+        ChangedUser,
+    }
 }

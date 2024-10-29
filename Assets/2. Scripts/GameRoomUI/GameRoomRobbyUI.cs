@@ -15,16 +15,22 @@ public class GameRoomRobbyUI : MonoBehaviour
 
     private void Awake()
     {
-        AddEvent();
-
         btn_RefreshGameRoomList.onClick.AddListener(RequestUpdateRoomData);
     }
 
     private void OnDestroy()
     {
-        RemoveEvent();
-
         btn_RefreshGameRoomList.onClick.RemoveListener(RequestUpdateRoomData);
+    }
+
+    private void OnEnable()
+    {
+        AddEvent();
+    }
+
+    private void OnDisable()
+    {
+        RemoveEvent();
     }
 
     private void AddEvent()
@@ -45,7 +51,7 @@ public class GameRoomRobbyUI : MonoBehaviour
         MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.getRoomList}");
 
         // 방 목록 요청 후 서버 응답 기다림
-        var roomListData = await MyTCPClient.Instance.ReceiveRoomListFromServer(Tcp_Room_Command.getRoomList);
+        var roomListData = await MyTCPClient.Instance.StartReceivingMessageAsync();
 
         UpdateRoomList(roomListData);
     }

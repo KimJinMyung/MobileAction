@@ -13,6 +13,7 @@ namespace TCP_Enum
 
     public enum Tcp_Room_Command
     {
+        connect,
         createRoom,
         removeRoom,
         getRoomList,
@@ -24,5 +25,6 @@ namespace TCP_Enum
         ChangedPlayerCount,
         GetPlayerCount,
         CloseServer,
+        PONG,
     }
 }
