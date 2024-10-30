@@ -1,6 +1,6 @@
 using MySql.Data.MySqlClient;
-using System;
 using System.Text;
+using System;
 
 class GameRoomDBManager
 {
@@ -90,6 +90,8 @@ class GameRoomDBManager
     // 방 목록 조회
     public string GetRoomList()
     {
+        Console.WriteLine("Get Room List");
+
         string query = "SELECT serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount, JoinCode FROM rooms";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
@@ -112,7 +114,7 @@ class GameRoomDBManager
                 int currentPlayerCount = reader.GetInt32("currentPlayerCount");
                 int maxPlayerCount = reader.GetInt32("maxPlayerCount");
                 int JoinCode = reader.GetInt32("JoinCode");
-                roomList.Append($"RoomList:{serverId},{serverIp},{isLock},{roomName},{currentPlayerCount},{maxPlayerCount},{JoinCode};");
+                roomList.Append($"{serverId},{serverIp},{isLock},{roomName},{currentPlayerCount},{maxPlayerCount},{JoinCode};");
             }
 
             reader.Close();

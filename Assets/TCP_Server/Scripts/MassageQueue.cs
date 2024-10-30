@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-
 public struct MessageData
 {
     public TcpClient messageClient;

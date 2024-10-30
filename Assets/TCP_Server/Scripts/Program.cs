@@ -149,7 +149,7 @@ namespace TCP_Server
 
                 case "getRoomList":
                     string roomList = dBManager.GetRoomList();
-                    SendResponse(stream, roomList);
+                    SendResponse(stream, $"RoomList:{roomList}");
                     break;
 
                 case "enterRoom":
