@@ -38,7 +38,7 @@ public class EnterGameRoomUI : MonoBehaviour
 
     private void TryJoinGame()
     {
-        string password = input_Password.text;
+        string password = string.IsNullOrEmpty(input_Password.text)? "Null": input_Password.text;
 
         string selectIp = selectRoom.ip;
 

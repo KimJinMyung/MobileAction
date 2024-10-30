@@ -106,7 +106,7 @@ class GameRoomDBManager
                 bool isLock = false;
                 if (!string.IsNullOrEmpty(password))
                 {
-                    isLock = true;
+                    isLock = string.Equals(password, "Null")? false : true;
                 }
                 string roomName = reader.GetString("roomName");
                 int currentPlayerCount = reader.GetInt32("currentPlayerCount");
@@ -159,6 +159,8 @@ class GameRoomDBManager
     // 방 입장
     public string EnterRoom(string serverIP, string serverID, string password)
     {
+        Console.WriteLine();
+
         string query = $"SELECT password FROM rooms WHERE serverid = '{serverID}' AND serverip = '{serverIP}'";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
@@ -178,11 +180,13 @@ class GameRoomDBManager
                 {
                     reader.Close();
                     result = $"true,{serverIP},{serverID}";
-                    return "true";    // 성공
+                    Console.WriteLine($"접속 성공 : {serverIP} , {serverID}");
+                    return result;    // 성공
                 }
                 else
                 {
                     reader.Close();
+                    Console.WriteLine("접속 실패");
                     return "false";  // 실패
                 }
             }
@@ -235,9 +239,24 @@ class GameRoomDBManager
     public void ChangedPlayerCount(string serverIp, string serverID, int ChangedType, string playerId)
     {
         string connectPlayersId = GetConnectPlayerIdFromSelectGameRoom(serverIp, serverID);
-        string currnetConnectPlayersId = $"{connectPlayersId},{playerId}";
 
-        int ChangedCount = ChangedType > 0 ? 1 : -1;
+        int ChangedCount = 0;
+        string currnetConnectPlayersId = string.Empty;
+
+        if (ChangedType > 0)
+        {
+            currnetConnectPlayersId = $"{connectPlayersId},{playerId}";
+            ChangedCount = 1;
+        }
+        else
+        {
+            int lastIndex = currnetConnectPlayersId.LastIndexOf($",{playerId}");
+            if(lastIndex == currnetConnectPlayersId.Length - $",{playerId}".Length)
+            {
+                currnetConnectPlayersId = currnetConnectPlayersId.Substring(0, lastIndex);
+            }
+            ChangedCount = -1;
+        }
 
         string playerCount = GetPlayerCount(serverIp, serverID);
         int Count = int.Parse(playerCount);

@@ -107,6 +107,8 @@ namespace TCP_Server
 
         private void RequestProcessing(TcpClient client, NetworkStream stream, string message)
         {
+            Console.WriteLine($"Client의 요청 : {message}");
+
             string[] requestParts = message.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
             IPEndPoint clientEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
@@ -151,17 +153,22 @@ namespace TCP_Server
                     break;
 
                 case "enterRoom":
+
+                    Console.WriteLine("입장");
+
                     string roomip = requestParts[1];
                     string roomid = requestParts[2];
-                    string roomPassword = requestParts[3];
-                    string playerid = requestParts[4];
-                    string playerip = requestParts[5];
+                    string roomPassword = string.IsNullOrEmpty(requestParts[3])? string.Empty:requestParts[3];
+                    //string playerid = requestParts[4];
+                    //string playerip = requestParts[5];
 
                     var response = dBManager.EnterRoom(roomip, roomid, roomPassword);
 
                     if (!string.IsNullOrEmpty(response))
                     {
-                        SendResponse(stream, $"enterRoom,{response}");
+                        string ResponseMessage = $"enterRoom,{response}";
+                        Console.WriteLine ("접속 성공 디버깅2" + ResponseMessage);
+                        SendResponse(stream, ResponseMessage);
                     }
                     else
                     {
@@ -228,7 +235,7 @@ namespace TCP_Server
             {
                 byte[] responseBytes = Encoding.UTF8.GetBytes(message);
                 stream.Write(responseBytes, 0, responseBytes.Length);
-                Console.WriteLine("Response sent: " + message);
+                //Console.WriteLine("Response sent: " + message);
             }
             catch (Exception ex)
             {

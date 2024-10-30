@@ -79,7 +79,23 @@ public class MyGameRoomManager : NetworkRoomManager
     // port, ip, password, playerCount
     private void UpdateRoomList(string roomListData, GameObject GameRoomButton, Transform GameRoomListContent)
     {
-        string[] rooms = roomListData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        if (string.Equals(roomListData, "RoomList:") && GameRoomListContent.childCount > 0)
+        {
+            // 아무것도 없으면 전부 제거
+            foreach (Transform child in GameRoomListContent)
+            {
+                var gameRoom = child.GetComponent<GameRoom>();
+                if (gameRoom != null)
+                {
+                    Destroy(child.gameObject); // 서버에 없는 방을 클라이언트에서 제거
+                }
+            }
+
+            return;
+        }
+
+        string roomList = roomListData.Substring("RoomList:".Length);
+        string[] rooms = roomList.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
         // 수신 받은 최신 방 데이터를 담는 HashSet
         HashSet<RoomData> latestRoomDataSet = new HashSet<RoomData>();
@@ -102,8 +118,8 @@ public class MyGameRoomManager : NetworkRoomManager
         foreach (var room in rooms)
         {
             if (string.IsNullOrEmpty(room)) continue;
-            string roomList = room.Substring("RoomList:".Length);
-            string[] roomDatas = roomList.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            //string roomList = room.Substring("RoomList:".Length);
+            string[] roomDatas = room.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
             RoomData roomData = new RoomData();
             roomData.id = roomDatas[0];
@@ -131,7 +147,7 @@ public class MyGameRoomManager : NetworkRoomManager
         foreach (var roomObject in existingRoomObjects)
         {
             var gameRoom = roomObject.GetComponent<GameRoom>();
-            if (gameRoom != null && !existingRoomDataSet.Contains(gameRoom.roomData))
+            if (gameRoom != null && !latestRoomDataSet.Contains(gameRoom.roomData))
             {
                 Destroy(roomObject.gameObject); // 서버에 없는 방을 클라이언트에서 제거
             }
@@ -150,7 +166,7 @@ public class MyGameRoomManager : NetworkRoomManager
         // 최대 플레이어 수
         int maxPlayerCount = maxCount;//this.maxPlayerCount;
         // 게임 룸 Password
-        string passward = string.IsNullOrWhiteSpace(roomPassword) ? "1234" : roomPassword;
+        string passward = string.IsNullOrWhiteSpace(roomPassword) ? "Null" : roomPassword;
 
 
         string sendMessage = $"{Tcp_Room_Command.createRoom},{hostPort},{hostIP},{passward},{name},1,{maxPlayerCount},{user.playerID}";

@@ -168,6 +168,7 @@ public class MyTCPClient : Singleton<MyTCPClient>
             // 메인 스레드에서 응답 처리
             mainThreadContext.Post(_ =>
             {
+                Debug.Log("방 생성 응답" + message);
                 EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.UpdateRoomList, message);
             }, null);
         }else if (message.StartsWith(nameof(Tcp_Room_Command.createRoom)))
