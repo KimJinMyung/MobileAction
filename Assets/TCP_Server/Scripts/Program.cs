@@ -38,6 +38,7 @@ namespace TCP_Server
                 clientDictionary = new TCPClientList();
 
                 clientDictionary.OnDecreasePlayerCount += dBManager.ChangedPlayerCount;
+                clientDictionary.OnRemoveGameRoom += HandlerRemoveGameRoom;
 
                 dBManager.OpenConnection();
 
@@ -238,6 +239,7 @@ namespace TCP_Server
         // 서버 종료
         public void StopServer()
         {
+            clientDictionary.OnRemoveGameRoom -= HandlerRemoveGameRoom;
             clientDictionary.OnDecreasePlayerCount -= dBManager.ChangedPlayerCount;
 
             server.Stop();
@@ -263,7 +265,6 @@ namespace TCP_Server
                     }
                     catch (Exception e)
                     {
-
                         clientDictionary.RemoveConnectClient(client);
                         Console.WriteLine("Client disconnected due to ping failure.");
                     }
@@ -285,6 +286,13 @@ namespace TCP_Server
             // 서버 실행
             TCPServer tcpServer = new TCPServer();
             tcpServer.StartServer("127.0.0.1", 5000);            
+        }
+
+        private void HandlerRemoveGameRoom(TcpClient client, string serverip, string serverid)
+        {
+            var stream = client.GetStream();
+            string Success = dBManager.RemoveRoom(serverid, serverip).ToString();
+            SendResponse(stream, $"removeRoom,{Success}");
         }
 
         public struct RoomData

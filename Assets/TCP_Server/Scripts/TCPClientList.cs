@@ -15,6 +15,7 @@ class TCPClientList
 {
     public Dictionary<TcpClient, ClientData> connectedClients { get; private set; } = new Dictionary<TcpClient, ClientData>();
     public event Action<string, string, int, string> OnDecreasePlayerCount;
+    public event Action<TcpClient, string, string> OnRemoveGameRoom;
 
     private readonly object clientLock = new object();
 
@@ -108,8 +109,16 @@ class TCPClientList
                 int changedType = -1;
                 string playerId = connectedClients[client].PlayerId;
 
-                // 접속하고 있는 currentPlayerCount 감소시킴
-                OnDecreasePlayerCount?.Invoke(serverIp, serverPort, changedType, playerId);
+                if (serverIp == connectedClients[client].PlayerIP)
+                {
+                    // 서버 제거
+                    OnRemoveGameRoom?.Invoke(client, serverIp, serverPort);
+                }
+                else
+                {
+                    // 접속하고 있는 currentPlayerCount 감소시킴
+                    OnDecreasePlayerCount?.Invoke(serverIp, serverPort, changedType, playerId);
+                }               
             }
 
             connectedClients.Remove(client);
