@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TCP_Enum;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,10 +46,17 @@ public class GameLobbyCanvasManager : MonoBehaviour
 
     private void PopUpEnterGameRoom(RoomData roomData)
     {
-        popUp_CreateRoom.SetActive(false);
-        popUp_JoinRoom.SetActive(false);
-        popUp_EnterRoom.SetActive(true);
+        if (roomData.isLock)
+        {
+            popUp_CreateRoom.SetActive(false);
+            popUp_JoinRoom.SetActive(false);
+            popUp_EnterRoom.SetActive(true);
 
-        popUp_EnterRoom.GetComponent<EnterGameRoomUI>().SelectGameRoom(roomData);
+            popUp_EnterRoom.GetComponent<EnterGameRoomUI>().SelectGameRoom(roomData);
+        }
+        else
+        {
+            EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.enterRoom, roomData.ip, roomData.id, "Null");
+        }       
     }
 }
