@@ -54,6 +54,8 @@ public class MyGameRoomManager : NetworkRoomManager
         EventManager<Tcp_Room_Command>.Binding(true, Tcp_Room_Command.removeRoom, async () => await RemoveRoom());
         EventManager<Tcp_Room_Command>.Binding<string, string, string>(true, Tcp_Room_Command.enterRoom, EnterRoom);
         EventManager<Tcp_Room_Command>.Binding<string>(true, Tcp_Room_Command.enterSelectRoom, EnterSelectRoom);
+        EventManager<Tcp_Room_Command>.Binding<bool>(true, Tcp_Room_Command.StartHost, ConnectedComplete);
+        EventManager<Tcp_Room_Command>.Binding<string, string>(true, Tcp_Room_Command.EnterGameRoomClient, EnterGameRoomClient);
     }
 
     private void RemoveEvent()
@@ -64,6 +66,8 @@ public class MyGameRoomManager : NetworkRoomManager
         EventManager<Tcp_Room_Command>.Binding(false, Tcp_Room_Command.removeRoom, async () => await RemoveRoom());
         EventManager<Tcp_Room_Command>.Binding<string, string, string>(false, Tcp_Room_Command.enterRoom, EnterRoom);
         EventManager<Tcp_Room_Command>.Binding<string>(false, Tcp_Room_Command.enterSelectRoom, EnterSelectRoom);
+        EventManager<Tcp_Room_Command>.Binding<bool>(false, Tcp_Room_Command.StartHost, ConnectedComplete);
+        EventManager<Tcp_Room_Command>.Binding<string, string>(false, Tcp_Room_Command.EnterGameRoomClient, EnterGameRoomClient);
     }
 
     private void ConnectLoginUser()
@@ -77,15 +81,21 @@ public class MyGameRoomManager : NetworkRoomManager
     {
         string[] rooms = roomListData.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
+        // 수신 받은 최신 방 데이터를 담는 HashSet
+        HashSet<RoomData> latestRoomDataSet = new HashSet<RoomData>();
+
         // 기존의 룸 데이터 수집
         // 중복 방지와 빠른 검색때문에 HashSet 사용
-        HashSet<RoomData> hashRoomRoomData = new HashSet<RoomData>();
+        HashSet<RoomData> existingRoomDataSet = new HashSet<RoomData>();
+        List<Transform> existingRoomObjects = new List<Transform>();
+
         foreach(Transform child in GameRoomListContent)
         {
             var gameRoom = child.GetComponent<GameRoom>();
             if(gameRoom != null)
             {
-                hashRoomRoomData.Add(gameRoom.roomData);
+                existingRoomDataSet.Add(gameRoom.roomData);
+                existingRoomObjects.Add(child);
             }
         }
 
@@ -104,21 +114,27 @@ public class MyGameRoomManager : NetworkRoomManager
             roomData.maxPlayerCount = int.Parse(roomDatas[5]);
             roomData.joinCode = int.Parse(roomDatas[6]);
 
-            // 만약 이미 생성된 게임 룸이라면 건너뛰기
-            if (hashRoomRoomData.Contains(roomData)) continue;
+            // 서버에서 받은 방 목록을 최신 HashSet에 추가
+            latestRoomDataSet.Add(roomData);
 
-            // 만약 삭제된 게임 룸이라면 Destory
+            // 만약 이미 생성된 게임 룸이라면 건너뛰기
+            if (existingRoomDataSet.Contains(roomData)) continue;
 
             // 새로운 게임 룸 생성
-            foreach(var child in roomDatas)
-            {
-                Debug.Log(child);
-            }
-
             GameObject newGameRoom = Instantiate(GameRoomButton);
             newGameRoom.transform.parent = GameRoomListContent;
             GameRoom GameRoomData = newGameRoom.GetComponent<GameRoom>();
             GameRoomData.InitGameRoomData(roomData);
+        }
+
+        // 기존 방 목록 중 서버에 존재하지 않는 방 제거
+        foreach (var roomObject in existingRoomObjects)
+        {
+            var gameRoom = roomObject.GetComponent<GameRoom>();
+            if (gameRoom != null && !existingRoomDataSet.Contains(gameRoom.roomData))
+            {
+                Destroy(roomObject.gameObject); // 서버에 없는 방을 클라이언트에서 제거
+            }
         }
     }
 
@@ -142,21 +158,19 @@ public class MyGameRoomManager : NetworkRoomManager
         // TCP 통신을 통해 DB에 방 생성 요청
         MyTCPClient.Instance.SendRequestToServer(sendMessage);
 
-        var result = await MyTCPClient.Instance.StartReceivingMessageAsync();
+        /*var result = */
+        
+        await MyTCPClient.Instance.StartReceivingMessageAsync();
+    }
 
-        if(bool.TryParse(result, out bool createResult) && createResult)
-        {
-            string ClientData = $"{Tcp_Room_Command.connect}, {user.playerID}, {hostIP}";
-            // 연결된 클라이언트 정보 전송
-            MyTCPClient.Instance.SendRequestToServer(ClientData);
-        }
-
-        // 호스트가 방을 생성
-        StartHost();
+    private void ConnectedComplete(bool isTrue)
+    {
+        if(isTrue) StartHost();
+        else StopHost();
     }
 
     // 서버 룸 제거
-    private async Task<bool> RemoveRoom()
+    private async Task RemoveRoom()
     {
         string hostIp = networkAddress;
         string hostPort = kcpTransport.port.ToString();
@@ -165,20 +179,7 @@ public class MyGameRoomManager : NetworkRoomManager
         MyTCPClient.Instance.SendRequestToServer(sendMessage);
 
         // 서버 응답 대기
-        string response = await MyTCPClient.Instance.StartReceivingMessageAsync();
-
-        if (bool.TryParse(response, out bool isSuccess) && isSuccess)
-        {
-            Debug.Log("Room removed successfully.");
-            StopHost();
-            return true;
-        }
-        else
-        {
-            Debug.LogError("Failed to remove room.");
-            StopHost();
-            return false;
-        }
+        await MyTCPClient.Instance.StartReceivingMessageAsync();
     }
 
     private async void EnterSelectRoom(string joinCode)
@@ -189,25 +190,7 @@ public class MyGameRoomManager : NetworkRoomManager
         MyTCPClient.Instance.SendRequestToServer(sendMessage);
 
         // 서버 응답 기다림
-        var roomData = await MyTCPClient.Instance.StartReceivingMessageAsync();
-
-        if (string.IsNullOrEmpty(roomData))
-        {
-            Debug.LogError("서버를 찾을 수 없습니다.");
-            return;
-        }
-
-        string[] data = roomData.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-        string roomIP = data[0];
-        int roomPort = int.Parse(data[1]);
-
-        networkAddress = roomIP;
-        kcpTransport.port = ushort.Parse(data[1]);
-
-        StartClient();
-
-        ChangedPlayerCount(1);        
+        await MyTCPClient.Instance.StartReceivingMessageAsync();      
     }
 
     private async void EnterRoom(string ip, string port, string password)
@@ -216,22 +199,17 @@ public class MyGameRoomManager : NetworkRoomManager
         Debug.Log(sendMessage);
         MyTCPClient.Instance.SendRequestToServer(sendMessage);
 
-        var responseMessage = await MyTCPClient.Instance.StartReceivingMessageAsync();
-        
-        string[] message = responseMessage.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        if(bool.TryParse(message[0], out bool isSuccess) && isSuccess)
-        {
-            networkAddress = ip;
-            kcpTransport.port = ushort.Parse(port);
+        await MyTCPClient.Instance.StartReceivingMessageAsync();
+    }
 
-            StartClient();
+    private void EnterGameRoomClient(string ip, string port)
+    {
+        networkAddress = ip;
+        kcpTransport.port = ushort.Parse(port);
 
-            ChangedPlayerCount(1);
-        }
-        else
-        {
-            Debug.LogError("만들어진 서버가 없습니다.");
-        }
+        StartClient();
+
+        ChangedPlayerCount(1);
     }
 
     private bool IsServerAvailable(string ip, int port, int timeout = 1000)

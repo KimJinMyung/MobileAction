@@ -51,9 +51,9 @@ public class GameRoomRobbyUI : MonoBehaviour
         MyTCPClient.Instance.SendRequestToServer($"{Tcp_Room_Command.getRoomList}");
 
         // 방 목록 요청 후 서버 응답 기다림
-        var roomListData = await MyTCPClient.Instance.StartReceivingMessageAsync();
+        //var roomListData = await MyTCPClient.Instance.StartReceivingMessageAsync();
 
-        UpdateRoomList(roomListData);
+        //UpdateRoomList(roomListData);
     }
 
     // port, ip, password, playerCount

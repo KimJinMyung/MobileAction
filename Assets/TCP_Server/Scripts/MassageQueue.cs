@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 public struct MessageData
 {
@@ -8,42 +10,45 @@ public struct MessageData
     public string messageString;
 }
 
-public class MessageQueue
+namespace TCP_Server
 {
-    public event Action<TcpClient, NetworkStream, string> OnMessageReceived; // 이벤트 선언
-
-    private ConcurrentQueue<MessageData> queue = new ConcurrentQueue<MessageData>();
-    private bool isProcessing = false;
-
-    // 메시지를 큐에 추가
-    public void EnqueueMessage(TcpClient client, NetworkStream stream, string message)
+    public class MessageQueue
     {
-        queue.Enqueue(new MessageData { messageClient = client, stream = stream, messageString = message }); ;
-        ProcessQueue();
-    }
+        public event Action<TcpClient, NetworkStream, string> OnMessageReceived; // 이벤트 선언
 
-    // 메시지 처리 메서드
-    private async void ProcessQueue()
-    {
-        if (isProcessing)
-            return;
+        private ConcurrentQueue<MessageData> queue = new ConcurrentQueue<MessageData>();
+        private bool isProcessing = false;
 
-        isProcessing = true;
-
-        while (queue.TryDequeue(out MessageData messageData))
+        // 메시지를 큐에 추가
+        public void EnqueueMessage(TcpClient client, NetworkStream stream, string message)
         {
-            // 여기에서 각 메시지를 처리
-            await HandleMessage(messageData);
+            queue.Enqueue(new MessageData { messageClient = client, stream = stream, messageString = message }); ;
+            ProcessQueue();
         }
 
-        isProcessing = false;
-    }
+        // 메시지 처리 메서드
+        private async void ProcessQueue()
+        {
+            if (isProcessing)
+                return;
 
-    // 실제 메시지 처리 로직
-    private async Task HandleMessage(MessageData messageData)
-    {
-        OnMessageReceived?.Invoke(messageData.messageClient, messageData.stream, messageData.messageString);
+            isProcessing = true;
 
-        //return Task.CompletedTask;
+            while (queue.TryDequeue(out MessageData messageData))
+            {
+                // 여기에서 각 메시지를 처리
+                await HandleMessage(messageData);
+            }
+
+            isProcessing = false;
+        }
+
+        // 실제 메시지 처리 로직
+        private async Task HandleMessage(MessageData messageData)
+        {
+            OnMessageReceived?.Invoke(messageData.messageClient, messageData.stream, messageData.messageString);
+
+            //return Task.CompletedTask;
+        }
     }
 }

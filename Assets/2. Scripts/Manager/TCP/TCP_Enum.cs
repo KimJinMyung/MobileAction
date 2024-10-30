@@ -14,6 +14,7 @@ namespace TCP_Enum
     public enum Tcp_Room_Command
     {
         connect,
+        StartHost,
         createRoom,
         removeRoom,
         getRoomList,
@@ -22,6 +23,7 @@ namespace TCP_Enum
         SelectRoom,
         enterRoom,
         enterSelectRoom,
+        EnterGameRoomClient,
         ChangedPlayerCount,
         GetPlayerCount,
         CloseServer,

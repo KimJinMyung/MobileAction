@@ -1,6 +1,5 @@
 using MySql.Data.MySqlClient;
 using System;
-using System.Net.Sockets;
 using System.Text;
 
 class GameRoomDBManager
@@ -35,7 +34,7 @@ class GameRoomDBManager
     }
 
     // 방 생성
-    public void CreateRoom(string serverID, string serverIP, string password, string roomName, string currentCount, string maxCount, string PlayerId)
+    public bool CreateRoom(string serverID, string serverIP, string password, string roomName, string currentCount, string maxCount, string PlayerId)
     {
         string query = "INSERT INTO rooms (serverid, serverip, password, roomName, currentPlayerCount, maxPlayerCount, JoinCode, connectPlayerId) VALUES (@serverid, @serverip, @password, @roomName, @currentPlayerCount, @maxPlayerCount, @JoinCode, @playerId)";
         MySqlCommand cmd = new MySqlCommand(query, connection);
@@ -58,11 +57,13 @@ class GameRoomDBManager
         try
         {
             cmd.ExecuteNonQuery();
+            return true;
             Console.WriteLine("Room inserted into DB");
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error inserting room into DB : " + ex.Message);
+            return false;
         }
     }
 
@@ -170,24 +171,26 @@ class GameRoomDBManager
             if (reader.Read())
             {
                 string dbPassword = reader.GetString("password");
+                string result = string.Empty;
 
                 // 비밀번호가 일치하는지 확인
                 if (string.Equals(password, dbPassword))
                 {
                     reader.Close();
+                    result = $"true,{serverIP},{serverID}";
                     return "true";    // 성공
                 }
                 else
                 {
                     reader.Close();
-                    return "Invalid password";  // 실패
+                    return "false";  // 실패
                 }
             }
             else
             {
                 Console.WriteLine("Data Read Fail");
                 reader.Close();
-                return "Room not found"; // 방 없음
+                return "false"; // 방 없음
             }
         }
         catch (Exception e)
@@ -200,7 +203,7 @@ class GameRoomDBManager
     // 현재 있는 게임방의 플레이어 리스트 출력
     public string GetConnectPlayerIdFromSelectGameRoom(string serverIp, string serverId)
     {
-        string query = $"SELECT connectPlayerId FROM rooms WHERE serverid = {serverId}, AND serverip = {serverIp}";
+        string query = $"SELECT connectPlayerId FROM rooms WHERE serverid = '{serverId}' AND serverip = '{serverIp}'";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
         try
@@ -237,20 +240,22 @@ class GameRoomDBManager
         int ChangedCount = ChangedType > 0 ? 1 : -1;
 
         string playerCount = GetPlayerCount(serverIp, serverID);
-        int Count = Int32.Parse(playerCount);
+        int Count = int.Parse(playerCount);
         Count = Count+ChangedCount;
 
-        string query = $"UPDATE rooms SET playerCount = {Count}, connectPlayerId = {currnetConnectPlayersId} WHERE serverid = @serverid AND serverip = @serverip";
+        string query = $"UPDATE rooms SET currentPlayerCount = @currentPlayerCount, connectPlayerId = @connectPlayerId WHERE serverid = @serverid AND serverip = @serverip";
         MySqlCommand cmd = new MySqlCommand(query, connection);
 
+        cmd.Parameters.AddWithValue("@currentPlayerCount", Count);
+        cmd.Parameters.AddWithValue("@connectPlayerId", currnetConnectPlayersId);
         cmd.Parameters.AddWithValue("@serverid", serverID);
         cmd.Parameters.AddWithValue("@serverip", serverIp);
 
         try
         {
             cmd.ExecuteNonQuery();
-
-            if(Count <= 0)
+            
+            if (Count <= 0)
             {
                 RemoveRoom(serverID, serverIp);
             }
@@ -265,7 +270,7 @@ class GameRoomDBManager
 
     private string GetPlayerCount(string serverIp, string serverID)
     {
-        string getPlayerCountQuery = $"SELECT playerCount FROM rooms WHERE serverip = {serverIp} AND serverid = {serverID}";
+        string getPlayerCountQuery = $"SELECT currentPlayerCount FROM rooms WHERE serverip = '{serverIp}' AND serverid = '{serverID}'";
         MySqlCommand cmd = new MySqlCommand(getPlayerCountQuery, connection);
 
         try
@@ -274,18 +279,19 @@ class GameRoomDBManager
 
             if(reader.Read())
             {
-                string playerCount = reader.GetString("currnetPlayerCount");
-
+                string playerCount = reader.GetInt32("currentPlayerCount").ToString();
                 reader.Close();
                 return playerCount;
             }
             else
             {
+                Console.WriteLine("무리데승");
                 return string.Empty;
             }
         }
         catch (Exception ex)
         {
+            Console.WriteLine("오류 발생" + ex.Message);
             return string.Empty;
         }
     }

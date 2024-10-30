@@ -13,7 +13,7 @@ public class MyTCPClient : Singleton<MyTCPClient>
 {
     private TcpClient client;
     private NetworkStream stream;
-    private MessageQueue messageQueue = new MessageQueue();
+    public MessageQueue messageQueue { get; private set; } = new MessageQueue();
 
     private SynchronizationContext mainThreadContext;
 
@@ -139,27 +139,10 @@ public class MyTCPClient : Singleton<MyTCPClient>
                 {
                     // 바이트 배열을 문자열로 변환
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    //Debug.LogError("Received from server : " + receivedMessage);
 
                     // 데이터 반환
                     messageQueue.EnqueueMessage(receivedMessage);
 
-                    //if (receivedMessage == "PING")
-                    //{
-                    //    Debug.Log("Ping 신호 받음");
-                    //    // 서버에 Pong 메시지 응답
-                    //    await Task.Delay(50);
-                    //    SendRequestToServer($"{Tcp_Room_Command.PONG}");
-                    //}
-                    //else
-                    //{
-                    //    // 데이터 반환
-                    //    messageQueue.EnqueueMessage(receivedMessage);
-                    //}
-
-
-                    // Game Room Lobby 에게 데이터 전달
-                    //EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.UpdateRoomList, receivedMessage);
                 }
             }
         }
@@ -180,13 +163,63 @@ public class MyTCPClient : Singleton<MyTCPClient>
         }
 
         // 방 생성 응답 처리
-        if (message.StartsWith("CMD:CREATE_ROOM_RESULT"))
+        if (message.StartsWith("RoomList"))
         {
             // 메인 스레드에서 응답 처리
             mainThreadContext.Post(_ =>
             {
-                // 여기에서 Unity 관련 로직 처리
-                Debug.Log("방 생성 성공 처리");
+                EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.UpdateRoomList, message);
+            }, null);
+        }else if (message.StartsWith(nameof(Tcp_Room_Command.createRoom)))
+        {
+            string[] messageData = message.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var result = messageData[1];
+            if (bool.TryParse(result, out bool success) && success)
+            {
+                mainThreadContext.Post(_ =>
+                {
+                    //EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.connect);
+                    EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.StartHost, true);
+                }, null);
+            }
+               
+        }else if (message.StartsWith(nameof(Tcp_Room_Command.removeRoom)))
+        {
+            mainThreadContext.Post(_ =>
+            {
+                EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.StartHost, false);
+            }, null);
+        }else if (message.StartsWith(nameof(Tcp_Room_Command.enterSelectRoom)))
+        {
+            mainThreadContext.Post(_ =>
+            {
+                if (string.IsNullOrEmpty(message))
+                {
+                    Debug.LogError("서버를 찾을 수 없습니다.");
+                    return;
+                }
+
+                string[] data = message.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                string roomIP = data[1];
+                int roomPort = int.Parse(data[2]);
+
+                EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.EnterGameRoomClient, roomIP, roomPort);
+
+            }, null);
+        }else if (message.StartsWith(nameof(Tcp_Room_Command.enterRoom)))
+        {
+            mainThreadContext.Post(_ =>
+            {
+                string[] data = message.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                if (bool.TryParse(data[1], out bool isSuccess) && isSuccess)
+                {
+                    string roomIP = data[2];
+                    string roomPort = data[3];
+
+                    EventManager<Tcp_Room_Command>.TriggerEvent(Tcp_Room_Command.EnterGameRoomClient, roomIP, roomPort);
+                }               
             }, null);
         }
 

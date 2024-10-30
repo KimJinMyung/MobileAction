@@ -1,9 +1,9 @@
 ﻿using System.Net.Sockets;
 using System.Net;
-using System;
 using System.Text;
-using Org.BouncyCastle.Tls;
-using MySqlX.XDevAPI;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace TCP_Server
 {
@@ -36,6 +36,8 @@ namespace TCP_Server
                 // DB 매니저 초기화 및 연결
                 dBManager = new GameRoomDBManager();
                 clientDictionary = new TCPClientList();
+
+                clientDictionary.OnDecreasePlayerCount += dBManager.ChangedPlayerCount;
 
                 dBManager.OpenConnection();
 
@@ -87,7 +89,6 @@ namespace TCP_Server
                     }
                     else
                     {
-                        // 클라이언트가 연결을 끊으면 루프 종료
                         break;
                     }
                 }
@@ -131,16 +132,16 @@ namespace TCP_Server
 
                     Console.WriteLine($"Room Name : {roomName}, currentCount : {currentCount}, maxCound : {maxCount}");
 
-                    clientDictionary.EnterGameRoomPlayer(client, serverIp);
-                    dBManager.CreateRoom(serverId, serverIp, password, roomName, currentCount, maxCount, playerId);
-                    SendResponse(stream, "true");
+                    clientDictionary.EnterGameRoomPlayer(client, serverIp, serverId);
+                    var result = dBManager.CreateRoom(serverId, serverIp, password, roomName, currentCount, maxCount, playerId);
+                    SendResponse(stream, $"createRoom,{result}");
                     break;
 
                 case "removeRoom":
                     string serverid = requestParts[1];
                     string serverip = requestParts[2];
                     string Success = dBManager.RemoveRoom(serverid, serverip).ToString();
-                    SendResponse(stream, Success);
+                    SendResponse(stream, $"removeRoom,{Success}");
                     break;
 
                 case "getRoomList":
@@ -159,18 +160,18 @@ namespace TCP_Server
 
                     if (!string.IsNullOrEmpty(response))
                     {
-                        SendResponse(stream, response);
+                        SendResponse(stream, $"enterRoom,{response}");
                     }
                     else
                     {
-                        SendResponse(stream, "Invalid room ID or password");
+                        SendResponse(stream, "enterRoom,false");
                     }
                     break;
                 case "enterSelectRoom":
                     string roomJoinCode = requestParts[1];
 
                     string roomData = dBManager.EnterSelectRoom(roomJoinCode);
-                    SendResponse(stream, roomData);
+                    SendResponse(stream, $"enterSelectRoom,{roomData}");
                     break;
 
                 case "ChangedPlayerCount":
@@ -182,7 +183,7 @@ namespace TCP_Server
 
                     if (intChangedType > 0)
                     {
-                        clientDictionary.EnterGameRoomPlayer(client, ip);
+                        clientDictionary.EnterGameRoomPlayer(client, ip, id);
                     }
                     else
                     {
@@ -237,6 +238,8 @@ namespace TCP_Server
         // 서버 종료
         public void StopServer()
         {
+            clientDictionary.OnDecreasePlayerCount -= dBManager.ChangedPlayerCount;
+
             server.Stop();
             Console.WriteLine("Server Stopped");
         }
