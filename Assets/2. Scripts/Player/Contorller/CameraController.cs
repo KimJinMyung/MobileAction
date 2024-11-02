@@ -3,64 +3,67 @@ using PlayerEventEnum;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CameraController : MonoBehaviour, IBeginDragHandler, IDragHandler
+namespace PlayerCamera
 {
-    [SerializeField] private float rotationSpeed = 0.4f;
-
-    Vector3 beginPos;
-    Vector3 dragPos;
-
-    float xAngle;
-    float yAngle;
-    float xAngleTemp;
-    float yAngleTemp;
-
-    private void Awake()
+    public class CameraController : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
-        AddEvent();
-    }
+        [SerializeField] private float rotationSpeed = 0.4f;
 
-    private void OnDestroy()
-    {
-        RemoveEvent();
-    }
+        Vector3 beginPos;
+        Vector3 dragPos;
 
-    private void AddEvent()
-    {
-        EventManager<Init>.Binding<float, float>(true, Init.InitCameraRotationValue, InitCameraRotationValue);
-    }
+        float xAngle;
+        float yAngle;
+        float xAngleTemp;
+        float yAngleTemp;
 
-    private void RemoveEvent()
-    {
-        EventManager<Init>.Binding<float, float>(false, Init.InitCameraRotationValue, InitCameraRotationValue);
-    }
+        private void Awake()
+        {
+            AddEvent();
+        }
 
-    private void InitCameraRotationValue(float x, float y)
-    {
-        // 카메라의 현재 회전 값을 각도로 가져오기
-        xAngle = x;
-        yAngle = y;
-    }
+        private void OnDestroy()
+        {
+            RemoveEvent();
+        }
 
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        beginPos = eventData.position;
+        private void AddEvent()
+        {
+            EventManager<Init>.Binding<float, float>(true, Init.InitCameraRotationValue, InitCameraRotationValue);
+        }
 
-        xAngleTemp = xAngle;
-        yAngleTemp = yAngle;
-    }
+        private void RemoveEvent()
+        {
+            EventManager<Init>.Binding<float, float>(false, Init.InitCameraRotationValue, InitCameraRotationValue);
+        }
 
-    public void OnDrag(PointerEventData eventData)
-    {
-        dragPos = eventData.position;
-        // Time.deltaTime 제거, 스크린 해상도 조정도 생략
-        yAngle = yAngleTemp + (dragPos.x - beginPos.x) * rotationSpeed;
-        xAngle = xAngleTemp - (dragPos.y - beginPos.y) * rotationSpeed;
+        private void InitCameraRotationValue(float x, float y)
+        {
+            // 카메라의 현재 회전 값을 각도로 가져오기
+            xAngle = x;
+            yAngle = y;
+        }
 
-        // X축 회전 각도 제한
-        xAngle = Mathf.Clamp(xAngle, -60f, 30f);
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            beginPos = eventData.position;
 
-        // 카메라 회전 적용
-        EventManager<PlayerController>.TriggerEvent(PlayerController.SetCameraRotation, xAngle, yAngle);
+            xAngleTemp = xAngle;
+            yAngleTemp = yAngle;
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            dragPos = eventData.position;
+            // Time.deltaTime 제거, 스크린 해상도 조정도 생략
+            yAngle = yAngleTemp + (dragPos.x - beginPos.x) * rotationSpeed;
+            xAngle = xAngleTemp - (dragPos.y - beginPos.y) * rotationSpeed;
+
+            // X축 회전 각도 제한
+            xAngle = Mathf.Clamp(xAngle, -60f, 30f);
+
+            // 카메라 회전 적용
+            EventManager<PlayerController>.TriggerEvent(PlayerController.SetCameraRotation, xAngle, yAngle);
+        }
     }
 }
