@@ -9,6 +9,12 @@ namespace PlayerEventEnum
         SetCameraRotation,
     }
 
+    public enum GameRoomPlayer
+    {
+        ConnectPlayer,
+        DisConnectPlayer,
+    }
+
     public enum Init
     {
         InitCameraRotationValue,

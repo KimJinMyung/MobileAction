@@ -56,6 +56,7 @@ public class MyGameRoomManager : NetworkRoomManager
         EventManager<Tcp_Room_Command>.Binding<string>(true, Tcp_Room_Command.enterSelectRoom, EnterSelectRoom);
         EventManager<Tcp_Room_Command>.Binding<bool>(true, Tcp_Room_Command.StartHost, ConnectedComplete);
         EventManager<Tcp_Room_Command>.Binding<string, string>(true, Tcp_Room_Command.EnterGameRoomClient, EnterGameRoomClient);
+        EventManager<Tcp_Room_Command>.Binding<int>(true, Tcp_Room_Command.ChangedPlayerCount, ChangedPlayerCount);
     }
 
     private void RemoveEvent()
@@ -68,6 +69,7 @@ public class MyGameRoomManager : NetworkRoomManager
         EventManager<Tcp_Room_Command>.Binding<string>(false, Tcp_Room_Command.enterSelectRoom, EnterSelectRoom);
         EventManager<Tcp_Room_Command>.Binding<bool>(false, Tcp_Room_Command.StartHost, ConnectedComplete);
         EventManager<Tcp_Room_Command>.Binding<string, string>(false, Tcp_Room_Command.EnterGameRoomClient, EnterGameRoomClient);
+        EventManager<Tcp_Room_Command>.Binding<int>(false, Tcp_Room_Command.ChangedPlayerCount, ChangedPlayerCount);
     }
 
     private void ConnectLoginUser()
