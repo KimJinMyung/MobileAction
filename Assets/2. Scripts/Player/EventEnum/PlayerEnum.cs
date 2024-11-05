@@ -2,11 +2,13 @@ namespace PlayerEventEnum
 {
     public enum PlayerController
     {
-        Movement,
+        ForwardMove,
+        LeftMove,
         SetJoyStickActive,
         SetJoyStickBackPosition,
         SetJoyStickDrag,
-        SetCameraRotation,
+        Drift,
+        Boost
     }
 
     public enum GameRoomPlayer

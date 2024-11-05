@@ -26,12 +26,12 @@ public class PlayerCameraRotation : NetworkBehaviour
 
     private void AddEvent()
     {
-        EventManager<PlayerController>.Binding<float, float>(true, PlayerController.SetCameraRotation, CameraRotate);
+        //EventManager<PlayerController>.Binding<float, float>(true, PlayerController.SetCameraRotation, CameraRotate);
     }
 
     private void RemoveEvent()
     {
-        EventManager<PlayerController>.Binding<float, float>(false, PlayerController.SetCameraRotation, CameraRotate);
+        //EventManager<PlayerController>.Binding<float, float>(false, PlayerController.SetCameraRotation, CameraRotate);
     }
 
     private void CameraRotate(float xAngle, float yAngle)

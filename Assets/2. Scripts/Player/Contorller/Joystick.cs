@@ -58,7 +58,7 @@ public class Joystick : MonoBehaviour
         var rangDir = inputPos.magnitude < joystickRadius ? inputPos : inputPos.normalized * joystickRadius;
         _joystick.anchoredPosition = rangDir;
 
-        EventManager<PlayerController>.TriggerEvent(PlayerController.Movement, rangDir);
+        EventManager<PlayerController>.TriggerEvent(PlayerController.ForwardMove, rangDir.normalized);
     }
 
     private void SetJoyStickActive(bool setController)

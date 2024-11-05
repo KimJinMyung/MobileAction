@@ -20,6 +20,6 @@ public class JoystickScreen : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     {
         EventManager<PlayerController>.TriggerEvent(PlayerController.SetJoyStickActive, false);
 
-        EventManager<PlayerController>.TriggerEvent(PlayerController.Movement, Vector2.zero);
+        EventManager<PlayerController>.TriggerEvent(PlayerController.ForwardMove, Vector2.zero);
     }
 }

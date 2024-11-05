@@ -30,12 +30,12 @@ public class PlayerMovement : NetworkBehaviour
 
     private void AddEvent()
     {
-        EventManager<PlayerController>.Binding<Vector2>(true, PlayerController.Movement, OnMovement);
+        EventManager<PlayerController>.Binding<Vector2>(true, PlayerController.ForwardMove, OnMovement);
     }
 
     private void RemoveEvent()
     {
-        EventManager<PlayerController>.Binding<Vector2>(false, PlayerController.Movement, OnMovement);
+        EventManager<PlayerController>.Binding<Vector2>(false, PlayerController.ForwardMove, OnMovement);
     }
 
     private void OnMovement(Vector2 move)

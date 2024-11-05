@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -55,6 +56,10 @@ public class GameRoomCanvas : MonoBehaviour
             camera.targetTexture = renderTexture;
         }
 
+        // 서버에서 만들어진 rawImages들을 받아와야 하지 않을까?
+
+
+        // 이후 해당 데이터들을 기반으로 다음 rawImage를 활성화시킨다.
         foreach(var child in rawImages)
         {
             if (child.gameObject.activeSelf) continue;

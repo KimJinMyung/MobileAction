@@ -61,6 +61,6 @@ public class CameraController : MonoBehaviour, IBeginDragHandler, IDragHandler
         xAngle = Mathf.Clamp(xAngle, -60f, 30f);
 
         // 카메라 회전 적용
-        EventManager<PlayerController>.TriggerEvent(PlayerController.SetCameraRotation, xAngle, yAngle);
+        //EventManager<PlayerController>.TriggerEvent(PlayerController.SetCameraRotation, xAngle, yAngle);
     }
 }
