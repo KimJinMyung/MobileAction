@@ -2,6 +2,7 @@ using Cinemachine;
 using Mirror;
 using PlayerEventEnum;
 using UnityEngine;
+using System.Collections;
 
 public enum PlayerState
 {
@@ -12,6 +13,7 @@ public enum PlayerState
 
 public class Movement : NetworkBehaviour
 {
+    [Header("SpeedValue")]
     [SerializeField] private float moveSpeed = 10f; // 가속도
     [SerializeField] private float maxMoveSpeed = 30f;
     [SerializeField] private float rotateSpeed = 50f;
@@ -21,9 +23,12 @@ public class Movement : NetworkBehaviour
     [SerializeField] private float boostMaxMoveSpeed = 50f;
     [SerializeField] private float boostTurnSpeed = 25f;
 
+    [Header("physic Material")]
     [SerializeField] private PhysicMaterial defaultMaterial;
     [SerializeField] private PhysicMaterial driftMaterial;
-    [SerializeField] private PhysicMaterial boostMaterial;
+
+    [Header("Booster Duration Time")]
+    [SerializeField] private float durationTime = 100f;
     //[SerializeField] private CinemachineVirtualCamera cam;
 
     private Rigidbody rb;
@@ -61,7 +66,7 @@ public class Movement : NetworkBehaviour
         EventManager<PlayerController>.Binding<float>(true, PlayerController.ForwardMove, InputForwardMovement);
         EventManager<PlayerController>.Binding<float>(true, PlayerController.LeftMove, InputRotateMovement);
         EventManager<PlayerController>.Binding<bool>(true, PlayerController.Drift, InputDrift);
-        EventManager<PlayerController>.Binding<bool>(true, PlayerController.Boost, InputBooster);
+        EventManager<PlayerController>.Binding(true, PlayerController.Boost, StartBoost);
     }
 
     private void RemoveEvent()
@@ -69,13 +74,15 @@ public class Movement : NetworkBehaviour
         EventManager<PlayerController>.Binding<float>(false, PlayerController.ForwardMove, InputForwardMovement);
         EventManager<PlayerController>.Binding<float>(false, PlayerController.LeftMove, InputRotateMovement);
         EventManager<PlayerController>.Binding<bool>(false, PlayerController.Drift, InputDrift);
-        EventManager<PlayerController>.Binding<bool>(false, PlayerController.Boost, InputBooster);
+        EventManager<PlayerController>.Binding(false, PlayerController.Boost, StartBoost);
     }
 
     public void InputForwardMovement(float isForward)
     {
         if (isLocalPlayer) /*inputMove = move;*/
             inputForwardMove = isForward;
+
+        Debug.Log("이동 중...");
     }
 
     public void InputRotateMovement(float isLeft)
@@ -85,14 +92,18 @@ public class Movement : NetworkBehaviour
 
     public void InputDrift(bool isDrift)
     {
+        if (!isLocalPlayer) return;
+
         state = isDrift ? PlayerState.isDrift : PlayerState.Normal;
         physicMaterial = isDrift ? driftMaterial : defaultMaterial;
     }
 
     public void InputBooster(bool isBoost)
     {
+        if (!isLocalPlayer) return;
+
         state = isBoost ? PlayerState.isBoost : PlayerState.Normal;
-        physicMaterial = isBoost ? boostMaterial : defaultMaterial;
+        physicMaterial = isBoost ? driftMaterial : defaultMaterial;
     }
 
     private void MoveForward()
@@ -101,12 +112,15 @@ public class Movement : NetworkBehaviour
         if (Mathf.Abs(forwardMoveDir) > 0.1f)
         {
             var moveDir = transform.forward * forwardMoveDir * (state == PlayerState.isDrift? driftSpeedMultiplier : 1f);
-            rb.AddForce(moveDir * moveSpeed, ForceMode.Force);
+            var speed = state == PlayerState.isBoost ? moveSpeed * boostSpeedMultiplier : moveSpeed;
+            rb.AddForce(moveDir * speed, ForceMode.Force);
 
             // 최고 속도 제한
-            if(rb.velocity.magnitude >= maxMoveSpeed)
+            var LimitSpeed = state == PlayerState.isBoost ? boostMaxMoveSpeed : maxMoveSpeed;
+
+            if (rb.velocity.magnitude >= LimitSpeed)
             {
-                rb.velocity = rb.velocity.normalized * maxMoveSpeed;
+                rb.velocity = rb.velocity.normalized * LimitSpeed;
             }
         }
     }
@@ -120,6 +134,20 @@ public class Movement : NetworkBehaviour
             float adjustedRotateSpeed = (rb.velocity.magnitude / moveSpeed) * (state == PlayerState.isDrift ? driftTurnSpeed : rotateSpeed);
             transform.Rotate(Vector3.up, adjustedRotateSpeed * rightMoveDir * Time.deltaTime);
         }
+    }
+
+    private void StartBoost()
+    {
+        InputBooster(true);
+
+        StartCoroutine(CheckBoostDuration());
+    }
+
+    IEnumerator CheckBoostDuration()
+    {
+        yield return new WaitForSeconds(durationTime);
+
+        InputBooster(false);
     }
 
     private void Update()

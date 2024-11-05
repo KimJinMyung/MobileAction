@@ -147,8 +147,8 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  moveSpeed: 2
-  maxMoveSpeed: 10
+  moveSpeed: 10
+  maxMoveSpeed: 30
   rotateSpeed: 50
   driftSpeedMultiplier: 0.8
   driftTurnSpeed: 100
@@ -157,8 +157,7 @@ MonoBehaviour:
   boostTurnSpeed: 25
   defaultMaterial: {fileID: 13400000, guid: 1cd1ccfc922a79f41afa729cdc87d129, type: 2}
   driftMaterial: {fileID: 13400000, guid: 489447f2974097d4f9bebf1945b7f0b9, type: 2}
-  boostMaterial: {fileID: 13400000, guid: d3e58f140c77ae144ad0482e0e4bbd6b, type: 2}
-  cam: {fileID: 8451188295029602618}
+  durationTime: 100
 --- !u!114 &157527185545156195
 MonoBehaviour:
   m_ObjectHideFlags: 0

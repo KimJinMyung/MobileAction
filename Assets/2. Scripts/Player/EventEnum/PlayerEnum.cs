@@ -8,7 +8,8 @@ namespace PlayerEventEnum
         SetJoyStickBackPosition,
         SetJoyStickDrag,
         Drift,
-        Boost
+        Boost,
+        ChangedGear,
     }
 
     public enum GameRoomPlayer
