@@ -10,6 +10,8 @@ namespace PlayerEventEnum
         Drift,
         Boost,
         ChangedGear,
+        ViewBackMirror,
+        SetBackMirrorTexture,
     }
 
     public enum GameRoomPlayer
