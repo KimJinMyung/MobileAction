@@ -15,7 +15,11 @@ public class BackMirror : NetworkBehaviour
 
     private void SetBackMirrorRenderTexture()
     {
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer)
+        {
+            backMirror.enabled = false;
+            return;
+        }
 
         backMirror.targetTexture = backMirrorTexture;
     }
